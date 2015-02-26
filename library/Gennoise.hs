@@ -1,6 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
--- | TODO
 module Gennoise (module Gennoise) where
 
 import System.Environment (getArgs)
@@ -9,6 +8,10 @@ import Data.List (find)
 import Data.Maybe (isNothing,isJust,fromJust)
 import Sound.Wav
 import Sound.Wav.ChannelData
+import System.Random
+import Data.Int
+import qualified Data.Vector as V 
+import qualified Data.ByteString.Lazy as BL
 
 -- HASKELETON: import New.Module as Gennoise
 
@@ -16,11 +19,11 @@ import Sound.Wav.ChannelData
 
 data Color = White | Brown | Pink deriving (Eq,Show)
 
-data Flag = Version | Help | Duration Integer | SampleRate Integer | NoiseColor Color |NoValue deriving (Eq,Show)
+data Flag = Version | Help | Duration Int | SampleRate Int | NoiseColor Color |NoValue deriving (Eq,Show)
 
-data GenInfo = GenInfo {   sampleRate::Integer
+data GenInfo = GenInfo {   sampleRate::Int
                          , noiseColor:: Color
-                         , duration::Integer
+                         , duration::Int
                        } deriving (Show,Eq)
                  
 options :: [OptDescr Flag]
@@ -89,7 +92,7 @@ isDuration::Flag -> Bool
 isDuration (Duration _ ) = True
 isDuration _              = False
 
-fromDuration :: Flag  -> Integer
+fromDuration :: Flag  -> Int
 fromDuration (Duration a) = a
 fromDuration _            = error "not a duration value"
 
@@ -100,7 +103,7 @@ isSampleRate::Flag -> Bool
 isSampleRate (SampleRate _) = True
 isSampleRate _              = False                             
 
-fromSampleRate::Flag -> Integer
+fromSampleRate::Flag -> Int
 fromSampleRate (SampleRate a) = a
 fromSampleRate _              = error "not a sample rate"
 
@@ -120,9 +123,9 @@ handleFlags flags filepath
                              White -> generateWhiteNoise (sampleRate genInfo) (duration genInfo)
                              Brown -> generateBrownNoise (sampleRate genInfo) (duration genInfo)
                              Pink  -> generatePinkNoise (sampleRate genInfo) (duration genInfo)
-                             _                       -> IntegralWaveData []
+--                             _                       -> IntegralWaveData []
 
-                  encodeWaveFile filepath (encodeIntegralWaveData waveFileTemplate d)
+                  encodeWaveFile filepath (encodeIntegralWaveData (waveFileTemplate $ sampleRate genInfo) d)
                   putStrLn "[done]"
 
 formatGenInfo :: [Flag] -> GenInfo
@@ -130,23 +133,32 @@ formatGenInfo flags = GenInfo { duration = fromDuration $ fromJust $ find isDura
                               , sampleRate = fromSampleRate $ fromJust $ find isSampleRate flags
                               , noiseColor = fromColor $ fromJust $ find isColor flags
                               }             
---format:: [Flag]->WaveFormat
---format flags = 
+format:: Int->WaveFormat
+format rate = WaveFormat
+    { waveAudioFormat = MicrosoftPCM
+    , waveNumChannels = 1
+    , waveSampleRate = fromIntegral rate
+    , waveByteRate = fromIntegral rate  * 2
+    , waveBlockAlignment = 2
+    , waveBitsPerSample = 16
+    }
 
-waveFile::IntegralWaveData->WaveFile
-waveFile = encodeIntegralWaveData waveFileTemplate 
 
-waveFileTemplate::WaveFile
-waveFileTemplate = undefined
+waveFileTemplate::Int -> WaveFile
+waveFileTemplate rate  = WaveFile { waveFormat = format rate 
+                             , waveData = BL.empty
+                             , waveFact = Nothing
+                             , waveInfo = Nothing
+                             }
 
-integralWaveData::IntegralWaveData
-integralWaveData = IntegralWaveData []
+whiteSamples :: Int -> Int -> [Int64]
+whiteSamples rate dur =  take (rate * dur) ( map (`div` 2) (randomRs (minBound,maxBound) (mkStdGen 100)))
 
-generateWhiteNoise::Integer->Integer -> IntegralWaveData
-generateWhiteNoise s r = IntegralWaveData [] 
+generateWhiteNoise::Int->Int -> IntegralWaveData
+generateWhiteNoise rate dur = IntegralWaveData [V.fromList  (whiteSamples rate dur)]
 
-generateBrownNoise::Integer->Integer -> IntegralWaveData
-generateBrownNoise s r = undefined
+generateBrownNoise::Int->Int -> IntegralWaveData
+generateBrownNoise _ _ = undefined
 
-generatePinkNoise::Integer->Integer -> IntegralWaveData
-generatePinkNoise s r = undefined
+generatePinkNoise::Int->Int -> IntegralWaveData
+generatePinkNoise _ _ = undefined

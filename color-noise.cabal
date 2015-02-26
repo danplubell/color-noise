@@ -34,6 +34,9 @@ library
     build-depends:
         base ==4.*
         , wavy == 0.1.*
+        , random == 1.0.1.*
+        , vector == 0.10.11.*
+        , bytestring == 0.10.4.*
     default-language:
         Haskell2010
     exposed-modules:
@@ -49,6 +52,7 @@ library
 executable color-noise
     build-depends:
         base
+        , color-noise
     default-language:
         Haskell2010
     ghc-prof-options:
