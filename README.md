@@ -1,4 +1,6 @@
 # gennoise
+This works ok.  But, it isn't very efficient.
+
 
 ``` sh
 # Update to latest version of Cabal.
@@ -29,5 +31,5 @@ make haddock
 
 # Analyze coverage.
 make hpc
-```
- # color-noise
+
+
