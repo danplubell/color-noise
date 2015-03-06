@@ -155,8 +155,9 @@ waveFileTemplate rate  = WaveFile { waveFormat = format rate
                              , waveInfo = Nothing
                              }
 
-whiteSamples :: Int -> Int -> Int -> [Int64]
-whiteSamples rate dur seed =  take (rate * dur) ( map (`div` 2) (randomRs (minBound,maxBound) (mkStdGen seed)))
+whiteRandom :: Int -> Int -> Int -> [Int64]
+whiteRandom rate dur seed =  take (rate * dur) (randomRs (minBound,maxBound) (mkStdGen seed))
+
 
 generateWhiteNoise::Int->Int -> WaveFile --IntegralWaveData
 generateWhiteNoise rate dur =encodeIntegralWaveData (waveFileTemplate rate ) (IntegralWaveData [V.fromList  (whiteSamples rate dur 100)])
@@ -165,7 +166,7 @@ generateBrownNoise::Int->Int -> WaveFile --IntegralWaveData
 generateBrownNoise _ _ = undefined
 
 generatePinkNoise::Int->Int -> WaveFile -- FloatingWaveData
-generatePinkNoise rate dur  = encodeIntegralWaveData (waveFileTemplate rate) (IntegralWaveData [V.fromList (genPink initialPinkNoise rate dur)])
+generatePinkNoise rate dur  = encodeFloatingWaveData (waveFileTemplate rate) (FloatingWaveData [V.fromList (genPink initialPinkNoise rate dur)])
 
 lcmrandom :: Word -> Integer
 lcmrandom rs = fromIntegral (rs * 196314165 + 907633515)
@@ -174,8 +175,6 @@ lcmrandoms:: Word -> [Integer]
 lcmrandoms seed = r:lcmrandoms (fromIntegral r)
   where r =  lcmrandom seed
 
---lcmTuples::Word -> Word -> [(Int,Int)]
---lcmTuples seed seed' = zip (lcmrandoms seed) (lcmrandoms seed')  
                                
 trailingZeros:: Int -> Int
 trailingZeros n
@@ -249,16 +248,16 @@ nextpValue pn idx val1 val2
   | otherwise = fromIntegral (runningSum pn + fromIntegral val2)
 
 nextpValue'::PinkNoise -> RandomValue -> PinkNoise
-nextpValue' pn rv | nextIdx /= 0  = updatePink pn (trailingZeros nextIdx) (rval1 rv) (rval2 rv)
-                  | otherwise  =  pn {index = nextIdx,rand2 = rval2 rv}                
+nextpValue' pn rv | nextIdx /= 0  = updatePink pn (trailingZeros nextIdx) (rval1 rv`shiftR` pinkRandomShift) (rval2 rv`shiftR` pinkRandomShift)
+                  | otherwise  =  pn {index = nextIdx,rand2 = rval2 rv `shiftR` pinkRandomShift}                
   where nextIdx = index pn + 1 .&. fromIntegral indexMask
         
 getPink::PinkNoise -> Int-> Int -> [PinkNoise]
 getPink pn rate dur  = scanl nextpValue' pn (randomValues rate dur)
 
-genPink :: PinkNoise -> Int -> Int -> [Int64]
+genPink :: PinkNoise -> Int -> Int -> [Double]
 genPink pn rate dur = map  calcVal  (getPink pn rate dur)
-  where calcVal = runningSum  -- + rand2 pn'
+  where calcVal pn'= scalarv * (fromIntegral (runningSum pn')  + fromIntegral (rand2 pn'))
         
 {-
 nextpValue :: PinkNoise -> Int -> Double
@@ -280,6 +279,7 @@ newPinkRandom = fst ( random (mkStdGen 100))--  `shiftR` pinkRandomShift
 scaleNumber::Int -> Double
 scaleNumber val  = fromIntegral (2 * (val - minBound) `div` (maxBound - minBound) - 1) 
 
+--build pink wave from file of doubles
 buildPink :: IO()
 buildPink = do
   handle <- openFile "pinkvalues.txt" ReadMode
