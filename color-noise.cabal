@@ -48,7 +48,10 @@ library
         -prof
     hs-source-dirs:
         library
-
+    other-modules:
+        WhiteNoise
+        , PinkVMBurk
+        , PinkKellet
 executable color-noise
     build-depends:
         base
