@@ -25,3 +25,4 @@ whiteSamples :: Int -> Int -> Int -> [Double]
 whiteSamples rate dur seed  = map calcVal (whiteRandom rate dur seed) 
   where
     calcVal v = scalarv * fromIntegral (v `shiftR` randomShift)
+
