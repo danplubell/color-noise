@@ -1,8 +1,8 @@
 module Gennoise (module Gennoise) where
 
-import WhiteNoise
-import PinkVMBurk
-import PinkKellet
+import WhiteNoise (whiteSamples)
+import PinkVMBurk (genPink,initialPinkNoise)
+import PinkKellet (kellet)
 import System.IO
 import System.Environment (getArgs)
 import System.Console.GetOpt

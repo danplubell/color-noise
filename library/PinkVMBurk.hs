@@ -5,9 +5,9 @@ From here:
 http://www.firstpr.com.au/dsp/pink-noise/
 
 -}
-module PinkVMBurk where
+module PinkVMBurk (genPink,initialPinkNoise) where
 
-import WhiteNoise
+import WhiteNoise (whiteRandom)
 import Data.Bits
 trailingZeros:: Int -> Int
 trailingZeros n
@@ -35,14 +35,13 @@ data PinkNoise = PinkNoise {
                            , rand2::Double  
                            } deriving (Show,Eq)
 
-data RandomValue = RandomValue { ridx:: Int
-                                 , rval1::Double
+data RandomValue = RandomValue {   rval1::Double
                                  , rval2::Double
                                } deriving (Show,Eq)
         
 randomValues :: Int -> Int -> [RandomValue]
 randomValues rate dur  = map buildVal (zip3 [0..(rate * dur)] (whiteRandom 100) (whiteRandom 200))
-  where buildVal (idx',val1',val2') = RandomValue idx' (val1' * 0.1)  (val2' * 0.1)  
+  where buildVal ( _ ,val1',val2') = RandomValue  (val1' * 0.1)  (val2' * 0.1)  
 
 getPink::PinkNoise -> Int-> Int -> [PinkNoise]
 getPink pn rate dur  = scanl nextpValue pn (randomValues rate dur)

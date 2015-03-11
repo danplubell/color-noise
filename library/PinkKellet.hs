@@ -1,4 +1,4 @@
-module PinkKellet where
+module PinkKellet (kellet) where
 kellet :: [Double] -> [Double] -- ^ pinked noise
 kellet w = kellet' w 0 0 0 0 0 0 0
     where kellet' []         _  _  _  _  _  _  _  = []
