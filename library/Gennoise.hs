@@ -53,8 +53,6 @@ parseColor Nothing = NoValue
 main :: IO ()
 main = do
   args <- getArgs
---  print $ getOpt Permute options args
-
   case getOpt Permute options args of
     (flags,[filename],[]) | not (hasColor flags) -> do
                                     putStrLn  "No color parameter given"
@@ -165,7 +163,7 @@ generatePinkKelletNoise rate dur = encodeFloatingWaveData (waveFileTemplate rate
 
 
            
---build pink wave from file of doubles
+--utilities used for exploration build pink wave from file of doubles 
 buildPink :: IO()
 buildPink = do
   handle <- openFile "pinkvalues.txt" ReadMode

@@ -1,28 +1,12 @@
 module WhiteNoise where
-import Data.Int
 import System.Random
-import Data.Bits
+{-
+Generate white noise with values between -0.1 and 0.1
+-}
 
-randomBits::Int
-randomBits = 24
+whiteRandom :: Int -> [Double]
+whiteRandom s = randomRs (-0.1, 0.1) (mkStdGen s)
 
-randomShift::Int
-randomShift = (8 * 8)-randomBits
-
-numOfRows::Int
-numOfRows = 30
-
-pmax :: Int
-pmax = (numOfRows + 1) * (1 `shiftL` (randomBits -1))
-
-scalarv :: Double
-scalarv = 1.0 / fromIntegral pmax
-
-whiteRandom :: Int -> Int -> Int -> [Int64]
-whiteRandom rate dur seed =  take (rate * dur) (map (`div` 2)(randomRs (minBound,maxBound) (mkStdGen seed)))
-
-whiteSamples :: Int -> Int -> Int -> [Double]
-whiteSamples rate dur seed  = map calcVal (whiteRandom rate dur seed) 
-  where
-    calcVal v = scalarv * fromIntegral (v `shiftR` randomShift)
+whiteSamples :: Int->Int->Int -> [Double]
+whiteSamples r d s = take (r * d) (whiteRandom s)
 
