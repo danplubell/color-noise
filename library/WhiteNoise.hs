@@ -1,5 +1,5 @@
 module WhiteNoise (whiteSamples,whiteRandom) where
-import System.Random
+import System.Random (randomRs,mkStdGen)
 {-
 Generate white noise with values between -0.1 and 0.1
 -}

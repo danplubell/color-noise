@@ -52,6 +52,7 @@ library
         WhiteNoise
         , PinkVMBurk
         , PinkKellet
+        , PinkIIR
 executable color-noise
     build-depends:
         base

@@ -3,6 +3,7 @@ module Gennoise (module Gennoise) where
 import WhiteNoise (whiteSamples)
 import PinkVMBurk (genPink,initialPinkNoise)
 import PinkKellet (kellet)
+import PinkIIR
 import System.IO
 import System.Environment (getArgs)
 import System.Console.GetOpt
@@ -14,7 +15,7 @@ import qualified Data.Vector as V
 import qualified Data.ByteString.Lazy as BL
 
 
-data Color = White | Brown | Pink |PinkKellet deriving (Eq,Show)
+data Color = White | Brown | Pink | PinkKellet | PinkIIR deriving (Eq,Show)
 
 data Flag = Version | Help | Duration Int | SampleRate Int | NoiseColor Color |NoValue deriving (Eq,Show)
 
@@ -43,11 +44,12 @@ parseRate Nothing = NoValue
   
 parseColor :: Maybe String -> Flag
 parseColor (Just s) = case s of
-                 "white" -> NoiseColor White
-                 "brown" -> NoiseColor Brown
-                 "pink"  -> NoiseColor Pink
+                 "white"      -> NoiseColor White
+                 "brown"      -> NoiseColor Brown
+                 "pink"       -> NoiseColor Pink
                  "pinkkellet" -> NoiseColor PinkKellet
-                 _       -> NoiseColor White
+                 "pinkiir"    -> NoiseColor PinkIIR
+                 _            -> NoiseColor White
 parseColor Nothing = NoValue
 
 main :: IO ()
@@ -120,6 +122,7 @@ handleFlags flags filepath
                              Brown -> generateBrownNoise (sampleRate genInfo) (duration genInfo)
                              Pink  -> generatePinkNoise (sampleRate genInfo) (duration genInfo)
                              PinkKellet -> generatePinkKelletNoise (sampleRate genInfo) (duration genInfo)
+                             PinkIIR -> generatePinkIIRNoise (sampleRate genInfo) (duration genInfo) 
                   encodeWaveFile filepath d
                   putStrLn "[done]"
 
@@ -160,7 +163,9 @@ generatePinkKelletNoise::Int->Int->WaveFile
 generatePinkKelletNoise rate dur = encodeFloatingWaveData (waveFileTemplate rate)
                                      (FloatingWaveData [ V.fromList $ kellet $ whiteSamples rate dur 100])
 
-
+generatePinkIIRNoise :: Int -> Int -> WaveFile
+generatePinkIIRNoise rate dur = encodeFloatingWaveData (waveFileTemplate rate)
+  (FloatingWaveData [V.fromList (genPinkIIR rate dur)])
 
            
 --utilities used for exploration build pink wave from file of doubles 
