@@ -11,4 +11,3 @@ kellet w = kellet' w 0 0 0 0 0 0 0
                   b5' = -0.7616 * b5 - white * 0.0168980;
                   pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
                   b6' = white * 0.115926
-
