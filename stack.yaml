@@ -1,0 +1,7 @@
+flags: {}
+packages:
+- '.'
+- '../wavy'
+- '../riff'
+extra-deps: []
+resolver: lts-3.5
